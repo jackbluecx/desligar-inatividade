@@ -1,27 +1,38 @@
 #!/bin/bash
 
-# Nome do seu programa
+# Nome do seu programa e arquivo principal
 PROGRAM_NAME="gui_simple"
-# Nome do arquivo principal Python
 PYTHON_FILE="gui_simple.py"
-# Nome do script auxiliar Shell
 SHELL_FILE="auto_off.sh"
+ICON_FILE="meu_icone.png" # Nome do seu arquivo de ícone.
 
-# --- 0. Mover Arquivos para a Pasta Home ---
+# Pasta de ícones padrão do sistema
+ICON_DIR="/usr/share/icons/hicolor/scalable/apps/" # Usaremos scalable para alta resolução
 
-echo "Movendo arquivos de código para a pasta Home do usuário: ~/"
+# --- 0. Mover Arquivos para a Pasta Home e Instalar Ícone ---
 
-# Move o script Python e o Shell para a pasta Home
+echo "Movendo arquivos de código para a pasta Home e instalando ícone."
+
+# Move os scripts para a pasta Home
 mv "$PYTHON_FILE" "$HOME/"
 mv "$SHELL_FILE" "$HOME/"
 chmod +x "$HOME/$SHELL_FILE"
 
-echo "Arquivos movidos e permissões atualizadas para o script shell."
+# Instala o ícone no diretório do sistema (requer sudo)
+if [ -f "$ICON_FILE" ]; then
+    sudo mkdir -p "$ICON_DIR"
+    sudo cp "$ICON_FILE" "$ICON_DIR/$PROGRAM_NAME.png"
+    echo "Ícone instalado em: $ICON_DIR/$PROGRAM_NAME.png"
+else
+    echo "Aviso: Arquivo de ícone '$ICON_FILE' não encontrado. O programa será instalado sem ícone."
+fi
 
-# Define o comando de execução final que agora usa o caminho padronizado na Home
+# Define o comando de execução final
 EXEC_COMMAND="python3 $HOME/$PYTHON_FILE"
 
 # --- 1. Instalação de Dependências ---
+
+# ... (Restante do código de instalação de dependências é o mesmo) ...
 
 echo "Iniciando a instalação de dependências. Será solicitado o uso de sudo."
 
@@ -45,7 +56,7 @@ else
     echo "Arquivo requirements.txt não encontrado."
 fi
 
-# --- 2. Criação do Arquivo .desktop ---
+# --- 2. Criação do Arquivo .desktop (Com Ícone) ---
 
 # Cria o conteúdo do arquivo .desktop
 DESKTOP_CONTENT="[Desktop Entry]
@@ -54,6 +65,7 @@ Comment=Script de inicialização automática do $PROGRAM_NAME
 Exec=nohup $EXEC_COMMAND &
 Terminal=false
 Type=Application
+Icon=$PROGRAM_NAME # O nome do ícone sem a extensão, pois foi instalado no sistema
 X-GNOME-Autostart-enabled=true
 "
 
@@ -66,7 +78,7 @@ chmod +x "$DESKTOP_FILE"
 
 echo "Arquivo .desktop criado em: $DESKTOP_FILE"
 
-# --- 3. Criação do Atalho de Inicialização ---
+# --- 3. Criação do Atalho de Inicialização e Atualização de Menu ---
 
 # Define a pasta de inicialização para o usuário atual
 AUTOSTART_DIR="$HOME/.config/autostart"
@@ -79,4 +91,8 @@ LINK_TARGET="$AUTOSTART_DIR/$PROGRAM_NAME.desktop"
 ln -sf "$DESKTOP_FILE" "$LINK_TARGET"
 
 echo "Atalho de inicialização automática criado em: $LINK_TARGET"
-echo "Instalação e configuração de inicialização concluídas. Seu programa está na sua pasta Home."
+
+# Força a atualização do menu para o ícone aparecer
+update-desktop-database ~/.local/share/applications/
+echo "Menu do sistema atualizado."
+echo "Instalação e configuração de inicialização concluídas com ícone."
