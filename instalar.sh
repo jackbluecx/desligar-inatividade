@@ -7,7 +7,10 @@ SHELL_FILE="auto_off.sh"
 ICON_FILE="meu_icone.png" # Nome do seu arquivo de ícone.
 
 # Pasta de ícones padrão do sistema
-ICON_DIR="/usr/share/icons/hicolor/scalable/apps/" # Usaremos scalable para alta resolução
+ICON_DIR="/usr/share/icons/hicolor/scalable/apps/"
+
+# Define o comando de execução final que agora usa o caminho padronizado na Home
+EXEC_COMMAND="python3 $HOME/$PYTHON_FILE"
 
 # --- 0. Mover Arquivos para a Pasta Home e Instalar Ícone ---
 
@@ -27,33 +30,33 @@ else
     echo "Aviso: Arquivo de ícone '$ICON_FILE' não encontrado. O programa será instalado sem ícone."
 fi
 
-# Define o comando de execução final
-EXEC_COMMAND="python3 $HOME/$PYTHON_FILE"
+# --- 1. Instalação de Dependências de Sistema e Python ---
 
-# --- 1. Instalação de Dependências ---
+echo "Iniciando a instalação de dependências de sistema (GTK, Python, psutil). Será solicitado o uso de sudo."
 
-# ... (Restante do código de instalação de dependências é o mesmo) ...
-
-echo "Iniciando a instalação de dependências. Será solicitado o uso de sudo."
-
-# Tenta identificar o gerenciador de pacotes e instala o Python e pip, se necessário
+# Tenta identificar o gerenciador de pacotes e instala as dependências
 if command -v apt-get &> /dev/null; then
     sudo apt-get update
-    sudo apt-get install -y python3 python3-pip
+    # Dependências: python3-gi (GTK), python3-psutil (monitoramento), xprintidle (tempo de inatividade)
+    sudo apt-get install -y python3 python3-pip python3-gi python3-psutil xprintidle xset
+    echo "Dependências GTK e psutil instaladas via APT."
 elif command -v dnf &> /dev/null; then
-    sudo dnf install -y python3 python3-pip
+    sudo dnf install -y python3 python3-pip python3-gobject python3-psutil xprintidle xset
+    echo "Dependências GTK e psutil instaladas via DNF."
 elif command -v pacman &> /dev/null; then
-    sudo pacman -Sy --noconfirm python python-pip
+    sudo pacman -Sy --noconfirm python python-pip python-gobject python-psutil xprintidle xorg-xset
+    echo "Dependências GTK e psutil instaladas via Pacman."
 else
-    echo "Não foi possível identificar um gerenciador de pacotes suportado. Instale python3 e python3-pip manualmente."
+    echo "Não foi possível identificar um gerenciador de pacotes suportado. Instale python3, python3-pip, python-gi/gobject, python-psutil, xprintidle e xset manualmente."
 fi
 
-# Instala as dependências do projeto listadas no requirements.txt
+# Instala as dependências restantes do projeto listadas no requirements.txt (se houver)
 if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
-    echo "Dependências do projeto instaladas via requirements.txt."
-else
-    echo "Arquivo requirements.txt não encontrado."
+    echo "Dependências adicionais do projeto instaladas via requirements.txt."
+    # Remove o requirements.txt após a instalação (limpeza)
+    rm requirements.txt
+    echo "Arquivo requirements.txt removido."
 fi
 
 # --- 2. Criação do Arquivo .desktop (Com Ícone) ---
@@ -61,11 +64,12 @@ fi
 # Cria o conteúdo do arquivo .desktop
 DESKTOP_CONTENT="[Desktop Entry]
 Name=$PROGRAM_NAME
-Comment=Script de inicialização automática do $PROGRAM_NAME
+Comment=Script de controle de energia com GUI
 Exec=nohup $EXEC_COMMAND &
 Terminal=false
 Type=Application
-Icon=$PROGRAM_NAME # O nome do ícone sem a extensão, pois foi instalado no sistema
+Icon=$PROGRAM_NAME
+Categories=Utility;Settings;
 X-GNOME-Autostart-enabled=true
 "
 
@@ -95,4 +99,4 @@ echo "Atalho de inicialização automática criado em: $LINK_TARGET"
 # Força a atualização do menu para o ícone aparecer
 update-desktop-database ~/.local/share/applications/
 echo "Menu do sistema atualizado."
-echo "Instalação e configuração de inicialização concluídas com ícone."
+echo "Instalação e configuração concluídas."
