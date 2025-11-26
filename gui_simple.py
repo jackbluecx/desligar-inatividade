@@ -17,7 +17,7 @@ LOG_FILE = os.path.expanduser("~/auto_off.log")
 
 class ScriptManagerGUI(Gtk.Window):
     def __init__(self):
-        Gtk.Window.__init__(self, title="Controle de Energia")
+        Gtk.Window.__init__(self, title="DESLIGAR POR INATIVIDADE")
         self.set_border_width(15)
         self.set_default_size(400, 380)
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
@@ -26,7 +26,7 @@ class ScriptManagerGUI(Gtk.Window):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=15)
         self.add(vbox)
 
-        lbl_title = Gtk.Label(label="<span size='x-large' weight='bold'>Configuração de Energia</span>")
+        lbl_title = Gtk.Label(label="<span size='x-large' weight='bold'>CONFIGUAR TEMPO DE DESLIGAMENTO</span>")
         lbl_title.set_use_markup(True)
         vbox.pack_start(lbl_title, False, False, 5)
 
